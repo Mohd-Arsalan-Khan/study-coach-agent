@@ -1,0 +1,8 @@
+{
+  "PreToolUse": [
+    {
+      "tool_name": "run_command",
+      "command": "python .agents/hooks/validate_command.py"
+    }
+  ]
+}

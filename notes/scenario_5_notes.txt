@@ -1,0 +1,1 @@
+Simple physics notes: Gravity pulls things down.

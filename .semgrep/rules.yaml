@@ -1,0 +1,25 @@
+rules:
+  - id: hardcoded-gemini-key
+    patterns:
+      - pattern-regex: AIzaSy[A-Za-z0-9_\-]{33}
+    message: "Hardcoded Gemini API key detected."
+    languages: [python, json, yaml]
+    severity: ERROR
+  - id: hardcoded-secret
+    patterns:
+      - pattern-regex: (?i)(password|secret|token|api_key)\s*=\s*['"][a-zA-Z0-9_-]{8,}['"]
+    message: "Potential hardcoded secret or password detected."
+    languages: [python]
+    severity: WARNING
+  - id: hardcoded-ssn
+    patterns:
+      - pattern-regex: \b\d{3}-\d{2}-\d{4}\b
+    message: "Potential SSN detected in code."
+    languages: [python]
+    severity: ERROR
+  - id: hardcoded-email
+    patterns:
+      - pattern-regex: \b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b
+    message: "Potential email address detected in code."
+    languages: [python]
+    severity: WARNING
