@@ -38,6 +38,8 @@ class UserProfile(BaseModel):
     extracted_topics: list[str] = Field(default_factory=list)
     topic_scores: dict[str, float] = Field(default_factory=dict)
     weak_areas: list[str] = Field(default_factory=list)
+    current_quiz_topics: list[str] = Field(default_factory=list)
+    skip_ingest: bool = Field(default=False)
 
 # --- Vector Store & Splitting ---
 chroma_client = chromadb.Client()
@@ -104,7 +106,7 @@ CRITICAL: If the user prompt starts with [CMD: START_QUIZ] or [CMD: PLANNER], yo
 )
 
 @node(name="chunk_and_embed")
-def chunk_and_embed(ctx: Context, node_input: dict):
+def chunk_and_embed(ctx: Context, node_input: str):
     text = str(node_input)
     if not text or len(text) < 10:
         return Event(output={"text": ""})
@@ -149,8 +151,10 @@ quiz_llm = LlmAgent(
     output_schema=QuizQuestions
 )
 
+from typing import Any
+
 @node(name="prepare_quiz")
-def prepare_quiz(ctx: Context, node_input: dict):
+def prepare_quiz(ctx: Context, node_input: Any):
     topics = ctx.state.get("extracted_topics", [])
     scores = ctx.state.get("topic_scores", {})
     
@@ -189,7 +193,7 @@ Score the performance strictly on a 1 to 5 scale (1=Poor, 5=Excellent). Provide 
 )
 
 @node(name="prepare_eval")
-def prepare_eval(ctx: Context, node_input: dict):
+def prepare_eval(ctx: Context, node_input: Any):
     quiz = node_input["quiz"]
     answers = node_input["answers"]
     target_topics = ctx.state.get("current_quiz_topics", ["General"])
@@ -229,7 +233,7 @@ planner_llm = LlmAgent(
 )
 
 @node(name="prepare_planner")
-def prepare_planner(ctx: Context, node_input: dict):
+def prepare_planner(ctx: Context, node_input: Any):
     weak_areas = ctx.state.get("weak_areas", [])
     prompt = f"Weak Areas: {weak_areas}\nRecent Feedback: {node_input['feedback']}"
     prompt = resolver.resolve(prompt)
@@ -282,6 +286,6 @@ root_agent = Workflow(
 
 app = App(
     root_agent=root_agent,
-    name="study_coach_app",
+    name="app",
     resumability_config=ResumabilityConfig(enabled=True)
 )

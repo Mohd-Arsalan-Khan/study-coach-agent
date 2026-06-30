@@ -1,0 +1,10 @@
+# AI Agent Course Notes
+
+- MCP (Model Context Protocol) - USB-C for AI tools, NxM to N+M
+- A2A Agent to Agent communication
+- ADK 2.0 graph based workflows
+- Progressive Disclosure and Context Hygiene
+- STRIDE security threat modeling
+- EDD Evaluation Driven Development
+- Vibe Coding and Context Engineering
+- Zero Ambient Authority
