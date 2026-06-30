@@ -2,13 +2,11 @@ import json
 import os
 import sys
 import time
-from google import genai
-from google.genai import types
 import yaml
-import os
+from dotenv import load_dotenv
+from openai import OpenAI
 
-os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "False"
-os.environ["GOOGLE_GENAI_USE_ENTERPRISE"] = "False"
+load_dotenv()
 
 def evaluate():
     base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
@@ -25,7 +23,11 @@ def evaluate():
     metrics = {m["name"]: m for m in config.get("custom_metrics", [])}
     metrics_to_run = config.get("metrics_to_run", [])
     
-    client = genai.Client()
+    client = OpenAI(
+        base_url="https://integrate.api.nvidia.com/v1",
+        api_key=os.environ.get("NVIDIA_API_KEY")
+    )
+    model = "meta/llama-3.1-8b-instruct"
     
     print("Evaluating traces...")
     
@@ -52,21 +54,19 @@ def evaluate():
             delay = 5
             for attempt in range(max_retries + 1):
                 try:
-                    time.sleep(13) # Respect 5 requests/min rate limit
-                    res = client.models.generate_content(
-                        model='gemini-flash-lite-latest',
-                        contents=eval_prompt,
-                        config=types.GenerateContentConfig(
-                            response_mime_type="application/json",
-                        )
+                    time.sleep(2) # Respect rate limit
+                    res = client.chat.completions.create(
+                        model=model,
+                        messages=[{"role": "user", "content": eval_prompt}],
+                        response_format={"type": "json_object"}
                     )
-                    score_data = json.loads(res.text)
+                    score_data = json.loads(res.choices[0].message.content)
                     results[case_id][m_name] = score_data
                     print(f"[{case_id}] {m_name}: Score {score_data.get('score')} - {score_data.get('explanation')[:50]}...")
                     break
                 except Exception as e:
-                    if "503" in str(e) and attempt < max_retries:
-                        print(f"[{case_id}] {m_name} Encountered 503 error, retrying in {delay} seconds (Attempt {attempt+1}/{max_retries})...")
+                    if attempt < max_retries:
+                        print(f"[{case_id}] {m_name} Encountered error, retrying in {delay} seconds (Attempt {attempt+1}/{max_retries})...")
                         time.sleep(delay)
                         delay *= 2
                     else:

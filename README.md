@@ -149,6 +149,8 @@ export GEMINI_API_KEY="your-api-key-here"   # Mac/Linux
 $env:GEMINI_API_KEY = "your-api-key-here"   # Windows PowerShell
 ```
 
+> **Note on model provider:** This project defaults to NVIDIA NIM (Llama 3.3 70B Instruct via an OpenAI-compatible endpoint) rather than Gemini directly. This is because Gemini's free tier (20 requests/day) is too restrictive for iterative development and evaluation runs, while NVIDIA NIM's free tier (40 requests/minute, no daily cap) supports a much smoother dev loop. ADK 2.0 is model-agnostic, so switching providers required only a configuration change — no changes to the graph, skills, or security layer. To use NVIDIA NIM instead, get a free key at [build.nvidia.com](https://build.nvidia.com) and set `NVIDIA_API_KEY` in your `.env` file. The Gemini code path remains available as a fallback via `GEMINI_API_KEY`.
+
 ### Add Your Notes
 
 Drop any `.txt` or `.docx` study notes into the `notes/` directory:
